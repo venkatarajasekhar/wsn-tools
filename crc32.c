@@ -118,11 +118,17 @@ uint32_t crc32_IEEE(const unsigned char *s,
                     uint32_t crc)
 {
   crc = ~crc;
-
+  if((len) && (!s)){
   while(len--)
     crc = crc32_IEEE_tbl[(crc ^ *s++) & 0xff] ^ (crc >> 8);
 
   return ~crc;
+  }
+   else{
+  printf("Error:Current File :%s\n", __FILE__ );  
+  printf("Error:Line Number :%d\n", __LINE__ );
+      return ~crc;
+   }
 }
 #endif /* USE_CRC32_IEEE */
 
@@ -249,10 +255,17 @@ uint32_t crc32_c(const unsigned char *s,
                  unsigned long len,
                  uint32_t crc)
 {
-  while(len--)
+   if((len)&&(!s)){
+   while(len--)
     crc = crc32_c_tbl[(crc ^ *s++) & 0xff] ^ (crc >> 8);
-
-  return crc;
+       return crc;
+   }
+else{
+   printf("Error:Current File :%s\n", __FILE__ );  
+   printf("Error:Line Number :%d\n", __LINE__ );
+   return crc;
+}
+ 
 }
 # endif
 #endif /* USE_CRC32_C */
