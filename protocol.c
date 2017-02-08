@@ -27,12 +27,18 @@
 
 static void full_write(int fd, const void *buf, size_t count, const char *error)
 {
+   ssize_t FileSize = 0;
+   if (fd == -1) {
+            perror ("Error: open the file");
+            return ;
+   }
   while(count) {
-    ssize_t n = write(fd, buf, count);
-    if(n < 0)
+     FileSize = write(fd, buf, count);     
+    }
+    if(FileSize < 0)
       err(EXIT_FAILURE, "%s", error);
-    count -= n;
-    buf   += n;
+    count -= FileSize;
+    buf   += FileSize;
   }
 }
 
@@ -54,7 +60,10 @@ void prot_write(int fd,
   buffer[0] = mt | size;
 
   memcpy(buffer + 1, message, size);
-
+   if (fd == -1) {
+     perror ("Error: open the file");
+     return ;
+   }
   full_write(fd, buffer, size + 1, "cannot write to UART");
 }
 
@@ -63,32 +72,53 @@ unsigned char * prot_read(unsigned char *message,
                                            unsigned char *,
                                            size_t))
 {
-  enum prot_mtype mt = *message & 0x80;
-  size_t size        = *message & ~0x80;
+   if(!message){
+    perror ("Error: NULL Pointer");
+    return NULL;      
+   }
+   enum prot_mtype mt = *message & 0x80;
+   size_t size        = *message & ~0x80;
 
   /* skip information byte */
   message++;
 
   /* parse the frame */
-  if(!callback(mt, message, size))
+  if(!callback(mt, message, size)){
+      perror ("Error: NULL Pointer");
     return NULL;
+  }
   return message + size;
-}
+   }   
 
-bool prot_preparse_control(const unsigned char *message, size_t size)
+
+bool prot_preparse_control(const unsigned char *message, size_t size,int type)
 {
+   int NumofBytes;
+   int NumofBytes[3];
+   if(!message){
+    perror ("Error: NULL Pointer");
+    return NULL;      
+   }
   enum prot_ctype type = message[0];
   message++;
   size--;
 
   switch(type) {
   case(PROT_CTYPE_INFO):
-    write(STDOUT_FILENO, message, size);
+    NumofBytes = write(STDOUT_FILENO, message, size);
+        if(NumofBytes)
+           printf("%s\n",NumofBytes);
     break;
   case(PROT_CTYPE_DEBUG):
-    write_slit(STDERR_FILENO, "debug: ");
-    write(STDERR_FILENO, message, size);
-    write_slit(STDERR_FILENO, "\n");
+    NumofBytes[0] = write_slit(STDERR_FILENO, "debug: ");
+        if(*NumofBytes)
+           printf("%s\n",*NumofBytes);
+    NumofBytes[1] = write(STDERR_FILENO, message, size);
+        if(*(NumofBytes+1))
+           printf("%s\n",*(NumofBytes+1));        
+    NumofBytes[2] = write_slit(STDERR_FILENO, "\n");
+        if(*(NumofBytes+2))
+           printf("%s\n",*(NumofBytes+2));
     break;
   /* FIXME: We need error codes associated to the error control messages. */
   case(PROT_CTYPE_CLI_ERROR):
@@ -102,7 +132,7 @@ bool prot_preparse_control(const unsigned char *message, size_t size)
   return true;
 }
 
-const char * prot_ctype_string(enum prot_ctype type)
+const char * prot_ctype_string(enum prot_ctype type,int type)
 {
   static char generic[sizeof("(0xff)")];
 
