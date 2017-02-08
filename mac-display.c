@@ -48,7 +48,13 @@ static void display_mac_type(enum mac_type type)
 
 void mac_display_type(const struct mac_frame *frame)
 {
-  display_mac_type(frame->control & MC_TYPE);
+   if(frame){
+   display_mac_type(frame->control & MC_TYPE);
+   }
+   else{
+   printf("Error:Current File :%s\n", __FILE__ );   
+   printf("Error:Line Number :%d\n", __LINE__ );
+   }   
 }
 
 static void display_mac_addr_mode(enum mac_addr_mode am)
@@ -71,14 +77,14 @@ static void display_mac_addr_mode(enum mac_addr_mode am)
   }
 }
 
-static void display_addr(enum mac_addr_mode am, const struct mac_addr *addr)
+static void display_addr(enum mac_addr_mode am)
 {
   uint64_t mac;
 
   switch(am) {
   case(MAM_FULL):
     printf("ignored");
-    return;
+    break;
   case(MAM_RESERVED):
     printf("(reserved) ");
     break;
