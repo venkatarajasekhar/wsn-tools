@@ -34,7 +34,7 @@ struct prot_mqueue {
   struct message *tail;
 };
 
-prot_mqueue_t prot_mqueue_creat(void)
+prot_mqueue_t* prot_mqueue_creat(void)
 {
   struct prot_mqueue *mq = malloc(sizeof(struct prot_mqueue));
   memset(mq, 0, sizeof(struct prot_mqueue));
@@ -42,7 +42,7 @@ prot_mqueue_t prot_mqueue_creat(void)
   return mq;
 }
 
-void prot_mqueue_add_control(prot_mqueue_t mq,
+void prot_mqueue_add_control(prot_mqueue_t *mq,
                              enum prot_ctype type,
                              const void *message,
                              size_t size)
@@ -71,7 +71,7 @@ void prot_mqueue_add_control(prot_mqueue_t mq,
   mq->tail       = m;
 }
 
-void prot_mqueue_sendall(prot_mqueue_t mq, int fd)
+void prot_mqueue_sendall(prot_mqueue_t *mq, int fd)
 {
   struct message *m;
 
@@ -79,7 +79,7 @@ void prot_mqueue_sendall(prot_mqueue_t mq, int fd)
     prot_write(fd, m->type, m->message, m->size);
 }
 
-void prot_mqueue_destroy(prot_mqueue_t mq)
+void prot_mqueue_destroy(prot_mqueue_t *mq)
 {
   struct message *m = mq->head;
   struct message *o;
